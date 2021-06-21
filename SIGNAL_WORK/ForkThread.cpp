@@ -165,7 +165,7 @@ void    SignalSigInt(int __attribute__((unused)) sig)
 void    SignalSigKill(int __attribute__((unused)) sig)
     {
         bibArtFork.get()->Set_Kill_Switch(true);
-        kill(0, SIGKILL);
+        kill(-1, SIGKILL);
         exit(0);
     }
 
