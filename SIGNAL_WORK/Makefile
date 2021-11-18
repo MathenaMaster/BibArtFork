@@ -1,4 +1,4 @@
-NAME	+=		bibart
+NAME	+=		bibArt
 SRC		+=		ForkThread.cpp	\
 				main.cpp
 
@@ -10,7 +10,7 @@ ERRFILE	+=		err.txt
 $(NAME):		$(OBJ)
 
 all:			$(NAME)
-		g++ $(OBJ) -g -lpthread --std=c++11 -o $(NAME)
+		g++ $(OBJ) -g -lpthread --std=c++17 -o $(NAME)
 
  clean:
 		rm -rf $(OBJ)
@@ -19,5 +19,5 @@ all:			$(NAME)
 fclean:	clean
 		rm -rf $(NAME)
 
-execute: 	$(NAME)
+execute: 	all
 		./$(NAME) > ./$(OUTFILE) 2> ./$(ERRFILE)

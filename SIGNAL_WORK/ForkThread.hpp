@@ -1,18 +1,16 @@
 
+#include <iostream>
 #include <thread>
 #include <mutex>
 #include <memory>
-
-
-
+#include <string>
 
 #ifndef _FORKTHREAD_
 #define _FORKTHREAD_
 
-static std::mutex                   cout_mutex;
-
 class                   ForkThread {
     private:
+
     int                             fork_nb;
     bool                            is_turning;
     bool                            kill_switch;
@@ -21,6 +19,7 @@ class                   ForkThread {
     std::mutex                      fork_nb_mutex;
 
     public:
+
                         ForkThread(void (*)(void *), bool);
                         ForkThread(bool);
                         ForkThread();
@@ -36,8 +35,9 @@ class                   ForkThread {
     bool                Get_Kill_Switch();
     void                CatchLoop();
     void                StopCatcherThread();
-
+    
     private:
+
     std::thread         SetThread();
     void                InitSigAndPrintMsg(bool orig);
     void                SetForkNb(int);
@@ -48,6 +48,8 @@ class                   ForkThread {
 void                SignalSigInt(int);
 void                SignalSigKill(int);
 
+void                operator<<(std::shared_ptr<ForkThread> &, std::string);
+void                operator>>(std::shared_ptr<ForkThread> &, std::string);
 
 extern std::shared_ptr<ForkThread>      bibArtFork;
 

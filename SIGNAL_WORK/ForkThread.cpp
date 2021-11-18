@@ -3,13 +3,15 @@
 #include <thread>
 #include <mutex>
 #include <memory>
-
+#include <string>
+#include <sstream>
 #include <iostream>
 #include <random>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <signal.h>
 #include <unistd.h>
+
 #include "ForkThread.hpp"
 
 std::shared_ptr<ForkThread>      bibArtFork(new ForkThread(true));
@@ -44,10 +46,8 @@ void    ForkThread::InitSigAndPrintMsg(bool orig)
     {
         if (orig) bibArtFork = std::shared_ptr<ForkThread>(this);
         signal(SIGINT, SignalSigInt);
-        cout_mutex.lock();
-        std::cout << "Press Ctrl+c to correctly end." << std::endl
-        << "Repress Ctrl+c to kill all children and process." << std::endl;
-        cout_mutex.unlock();
+        bibArtFork << "Press Ctrl+c to correctly end.";
+        bibArtFork << "Repress Ctrl+c to kill all children and process.";
     }
 
 ForkThread::~ForkThread()
@@ -74,9 +74,11 @@ void    ForkThread::SetForkNb(int with)
 int     ForkThread::ThreadCatcher()
     {
         std::this_thread::sleep_for(std::chrono::seconds(1));
-        cout_mutex.lock();
-        std::cout << "Thread catcher running. is_turning = " << Get_Is_Turning() << ", kill_switch = " << Get_Kill_Switch() << std::endl;
-        cout_mutex.unlock();
+        std::stringstream ssT, ssK;
+
+        ssT << Get_Is_Turning();
+        ssK << Get_Kill_Switch();
+        bibArtFork << "Thread catcher running. is_turning = " + ssT.str() + ", kill_switch = " + ssK.str();
         while (Get_Is_Turning() && !Get_Kill_Switch())
             CatchLoop();
         return (0);
@@ -92,9 +94,11 @@ void    ForkThread::CatchLoop()
             catched_pid = wait(&return_status);
             if (catched_pid > 0) {
                 SetForkNb(-1);
-                cout_mutex.lock();
-                std::cout << "the pid: " << catched_pid << " ended with status: " << return_status << std::endl;
-                cout_mutex.unlock();
+                std::stringstream ssP, ssR;
+
+                ssP << catched_pid;
+                ssR << return_status;
+                bibArtFork << "the pid: " + ssP.str() + " ended with status: " + ssR.str();
             }
         }
     }
@@ -114,13 +118,13 @@ void    ForkThread::Fork(void *data)
             exit(0);
         } else if (pid > 0) {
             SetForkNb(1);
-            cout_mutex.lock();
-            std::cout << "Child created with pid: " << pid << " for: " << random_time << " seconds." << std::endl;
-            cout_mutex.unlock();
+            std::stringstream ssP, ssR;
+
+            ssP << pid;
+            ssR << random_time;
+            bibArtFork << "Child created with pid: " + ssP.str() + " for: " + ssR.str() + " seconds.";
         } else {
-            cout_mutex.lock();
-            std::cerr << "Fork failed." << std::endl;
-            cout_mutex.unlock();
+            bibArtFork >> "Fork failed.";
         }
     }
 
@@ -139,20 +143,23 @@ void    ForkThread::Fork()
             exit(0);
         } else if (pid > 0) {
             SetForkNb(1);
-            cout_mutex.lock();
-            std::cout << "Child created with pid: " << pid << " for: " << random_time << " seconds." << std::endl;
-            cout_mutex.unlock();
+            std::stringstream ssP, ssR;
+
+            ssP << pid;
+            ssR << random_time;
+            bibArtFork << "Child created with pid: " + ssP.str() + " for: " + ssR.str() + " seconds.";
         } else {
-            cout_mutex.lock();
-            std::cerr << "Fork failed." << std::endl;
-            cout_mutex.unlock();
+            bibArtFork >> "Fork failed.";
         }
     }
 
 void    ForkThread::BasicForkAction(int time_data)
     {
         std::this_thread::sleep_for(std::chrono::seconds(time_data));
-        std::cout << "Child ended after: " << time_data << " seconds." << std::endl;
+        std::stringstream ssT;
+
+        ssT << time_data;
+        bibArtFork << "Child ended after: " + ssT.str() + " seconds.";
     }
 
 void    SignalSigInt(int __attribute__((unused)) sig)
@@ -213,5 +220,27 @@ bool    ForkThread::Get_Kill_Switch()
 void    ForkThread::StopCatcherThread()
     {
         delete bibArtFork.get();
+    }
+
+void  operator<<(std::shared_ptr<ForkThread> & it, std::string msg)
+    {
+        static std::mutex cout_mutex;
+        std::stringstream ss;
+
+        ss << msg;
+        cout_mutex.lock();
+        std::cout << ss.str() << std::endl;
+        cout_mutex.unlock();
+    }
+
+void  operator>>(std::shared_ptr<ForkThread> & it, std::string msg)
+    {
+        static std::mutex cerr_mutex;
+        std::stringstream ss;
+
+        ss << msg;
+        cerr_mutex.lock();
+        std::cerr << ss.str() << std::endl;
+        cerr_mutex.unlock();
     }
 

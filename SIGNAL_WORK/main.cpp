@@ -1,51 +1,60 @@
 #include <iostream>
 #include <string>
+#include <sstream>
 #include "ForkThread.hpp"
 
 template<int var>
 void                    troll_func(std::string msg)
     {
-        std::cout << msg << var << std::endl;
+        std::stringstream ssV;
+
+        ssV << var;
+        bibArtFork << msg + ssV.str();
     }
 
     void    BasicForkAction(void *time_data)
     {
         std::this_thread::sleep_for(std::chrono::seconds(*((int *) time_data)));
-        std::cout << "Child BASICALY ended after: " << *((int *) time_data) << " seconds." << std::endl;
+        std::stringstream ssT;
+
+        ssT << *((int *) time_data);
+        bibArtFork << "Child BASICALY ended after: " + ssT.str() + " seconds.";
     }
 
 int                     main(int argc, char **argv)
     {
-        cout_mutex.lock();
         troll_func<10>("So ! That trolls ?: ");
         troll_func<10>("This test will repeat this number of time: ");
-        cout_mutex.unlock();
         for (int i = 1; i <= 10; ++i)
         {
-            std::this_thread::sleep_for(std::chrono::seconds(2));
-            cout_mutex.lock();
-            std::cout << "This is the: " << i  << " over: " << 10 << std::endl;
-            cout_mutex.unlock();
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            std::stringstream ssI, ssD;
+
+            ssI << i;
+            ssD << 10;
+            bibArtFork << "This is the: " + ssI.str() + " over: " + ssD.str();
             bibArtFork.get()->Fork();
         }
         bibArtFork.get()->Set_Fork_Action(BasicForkAction);
         for (int i = 1; i <= 10; ++i)
         {
             std::this_thread::sleep_for(std::chrono::seconds(2));
-            cout_mutex.lock();
-            std::cout << "This is the func set test: " << i  << " over: " << 10 << std::endl;
-            cout_mutex.unlock();
+            std::stringstream ssI, ssD;
+
+            ssI << i;
+            ssD << 10;
+            bibArtFork << "This is the func set test: " + ssI.str() + " over: " + ssD.str();
             bibArtFork.get()->Fork();
         }
-        cout_mutex.lock();
-        std::cout << "This thime it's the last test" << std::endl;
-        cout_mutex.unlock();
+        bibArtFork << "This thime it's the last test";
         for (int i = 1; i <= 10; ++i)
         {
             std::this_thread::sleep_for(std::chrono::seconds(2));
-            cout_mutex.lock();
-            std::cout << "This is the func and var set test: " << i  << " over: " << 10 << std::endl;
-            cout_mutex.unlock();
+            std::stringstream ssI, ssD;
+
+            ssI << i;
+            ssD << 10;
+            bibArtFork << "This is the func and var set test: " + ssI.str() + " over: " + ssD.str();
             int time_data = (std::rand() % 10) + 1;
             bibArtFork.get()->Fork(&time_data);
         }
