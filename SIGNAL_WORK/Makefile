@@ -42,5 +42,6 @@ continuousForkCheck:
 
 reset:
 		pkill -9 $(NAME)
+		pkill -9 $(NAME)
 
 .PHONY:			clean fclean re all execute progressCheck testFinalOut continuousForkCheck reset 
