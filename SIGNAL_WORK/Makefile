@@ -1,23 +1,46 @@
-NAME	+=		bibArt
-SRC		+=		ForkThread.cpp	\
-				main.cpp
+NAME		=		bibArt
+SRC			+=		ForkThread.cpp	\
+					main.cpp
 
-OBJ		+=		$(SRC:.cpp=.o)
+CC			=		g++
 
-OUTFILE	+=		out.txt
-ERRFILE	+=		err.txt
+OBJ			+=		$(SRC:.cpp=.o)
+
+CXXFLAGS	+=		-lpthread --std=c++20 -fgnu-tm
+
+OUTFILE		+=		./out.txt
+ERRFILE		+=		./err.txt
+COMPILOUT	+=		./compilout.txt
 
 $(NAME):		$(OBJ)
+		$(CC) $(OBJ) $(CXXFLAGS) -o $(NAME)
 
 all:			$(NAME)
-		g++ $(OBJ) -g -lpthread --std=c++17 -o $(NAME)
 
- clean:
-		rm -rf $(OBJ)
-		rm -rf out.txt err.txt
+clean:
+		rm -rf $(OBJ) $(OUTFILE) $(ERRFILE)
 
-fclean:	clean
-		rm -rf $(NAME)
+fclean:			clean
+		rm -rf $(NAME) $(COMPILOUT)
 
-execute: 	all
-		./$(NAME) > ./$(OUTFILE) 2> ./$(ERRFILE)
+re:				clean fclean all
+
+execute:
+		echo "You can execute 'make continuousForkCheck' or 'make progressCheck' to follow the test from other terminals"
+		echo "You can test end outstreams consistance with: make testFinalOut"
+		./$(NAME) > $(OUTFILE) 2> $(ERRFILE)
+		ps -aux | grep $(NAME)
+
+progressCheck:
+		./pidLoopChecker.sh
+
+testFinalOut:
+		./testControlChecker.sh $(OUTFILE)
+
+continuousForkCheck:
+		./checkContinuom.sh
+
+reset:
+		pkill -9 $(NAME)
+
+.PHONY:			clean fclean re all execute progressCheck testFinalOut continuousForkCheck reset 

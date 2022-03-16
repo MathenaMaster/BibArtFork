@@ -1,56 +1,73 @@
-
 #include <iostream>
+#include <ostream>
 #include <thread>
 #include <mutex>
 #include <memory>
 #include <string>
 
-#ifndef _FORKTHREAD_
-#define _FORKTHREAD_
+#ifndef __FORKTHREAD__
+#define __FORKTHREAD__
 
-class                   ForkThread {
+class                       ForkThread {
     private:
 
-    int                             fork_nb;
-    bool                            is_turning;
-    bool                            kill_switch;
-    void                            (*fork_action)(void *);
-    std::thread                     fork_catcher;
-    std::mutex                      fork_nb_mutex;
-
+    int                     forkNb;
+    int                     killSwitch;
+    bool                    isTurning;
+    void                    (*forkAction)(void *);
+    std::thread             fork_catcher;
+    std::mutex              fork_nb_mutex;
+    std::mutex              is_turning_mutex;
+    std::mutex              kill_switch_mutex;
+    
     public:
 
-                        ForkThread(void (*)(void *), bool);
-                        ForkThread(bool);
-                        ForkThread();
-                        ~ForkThread();
-    int                 GetForkNb();
-    void                Fork(void *);
-    void                Fork();
+                            ForkThread(void (*fork_action_entry)(void *) = nullptr);
+                            ~ForkThread();
+    int                     GetForkNb();
+    void                    Fork(void *);
+    void                    Fork();
+    void                    SetForkAction(void (*action) (void *) = nullptr);
+    void                    SetIsTurning(bool);
+    bool                    GetIsTurning();
+    void                    SetKillSwitch(bool);
+    bool                    GetKillSwitch();
 
-    void                Set_Fork_Action(void (*action) (void *));
-    void                Set_Is_Turning(bool);
-    bool                Get_Is_Turning();
-    void                Set_Kill_Switch(bool);
-    bool                Get_Kill_Switch();
-    void                CatchLoop();
-    void                StopCatcherThread();
-    
     private:
 
-    std::thread         SetThread();
-    void                InitSigAndPrintMsg(bool orig);
-    void                SetForkNb(int);
-    int                 ThreadCatcher();
-    void                BasicForkAction(int);
+    void                    InitSigAndPrintMsg();
+    void                    CatchLoop();
+    void                    SetForkNb(int);
+    void                    ThreadCatcher();
+    void                    BasicForkAction(int);
 };
 
-void                SignalSigInt(int);
-void                SignalSigKill(int);
+namespace ostream {
+    template<typename T>
+    std::ostream &          operator<<(std::ostream &, const T);
+    template<typename T>
+    std::ostream &          operator<<(std::ostream &, const T *);    
+    std::ostream &          operator<<(std::ostream &, std::string const &);
+    std::ostream &          operator<<(std::ostream &, std::ostream &);
+    std::ostream &          operator<<(std::ostream &, std::ostream & (*) (std::ostream &));
+};
 
-void                operator<<(std::shared_ptr<ForkThread> &, std::string);
-void                operator>>(std::shared_ptr<ForkThread> &, std::string);
+    template<typename T>
+    std::ostream &          operator<<(ForkThread const &, const T);
+    template<typename T>
+    std::ostream &          operator<<(ForkThread const &, const T *);
+    std::ostream &          operator<<(ForkThread const &, std::string const &);
+    std::ostream &          operator<<(ForkThread const &, std::ostream &);
+    std::ostream &          operator<<(ForkThread const &, std::ostream & (*) (std::ostream &));
 
-extern std::shared_ptr<ForkThread>      bibArtFork;
+    template<typename T>
+    std::ostream &          operator>>(ForkThread const &, const T);
+    template<typename T>
+    std::ostream &          operator>>(ForkThread const &, const T *);
+    std::ostream &          operator>>(ForkThread const &, std::string const &);
+    std::ostream &          operator>>(ForkThread const &, std::ostream &);
+    std::ostream &          operator>>(ForkThread const &, std::ostream & (*) (std::ostream &));
 
-#endif /*   _FORKTHREAD_    */
+extern std::unique_ptr<ForkThread>      bibArtFork;
+
+#endif /* !__FORKTHREAD__ */

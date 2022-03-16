@@ -1,109 +1,37 @@
-
-
-#include <thread>
-#include <mutex>
-#include <memory>
 #include <string>
-#include <sstream>
 #include <iostream>
+#include <ostream>
 #include <random>
-#include <sys/types.h>
+#include <thread>
 #include <sys/wait.h>
-#include <signal.h>
 #include <unistd.h>
-
 #include "ForkThread.hpp"
 
-std::shared_ptr<ForkThread>      bibArtFork(new ForkThread(true));
+std::unique_ptr<ForkThread>      bibArtFork(new ForkThread());
 
-ForkThread::ForkThread(void (*fork_action_entry)(void *), bool orig = true):
-    fork_nb(0), is_turning(true), kill_switch(false), fork_action(fork_action_entry),
-    fork_catcher(this->SetThread())
+ForkThread::ForkThread(void (*fork_action_entry)(void *)) :
+    forkNb(0), killSwitch(false), isTurning(true), forkAction(fork_action_entry),
+    fork_catcher(std::thread(&ForkThread::ThreadCatcher, this))
     {
-        InitSigAndPrintMsg(orig);
-    }
-
-ForkThread::ForkThread(bool orig):
-    fork_nb(0), is_turning(true), kill_switch(false), fork_action(NULL),
-    fork_catcher(this->SetThread())
-    {
-       InitSigAndPrintMsg(orig);
-    }
-
-ForkThread::ForkThread():
-    fork_nb(0), is_turning(true), kill_switch(false), fork_action(NULL),
-    fork_catcher(this->SetThread())
-    {
-        InitSigAndPrintMsg(false);
-    }
-
-std::thread    ForkThread::SetThread()
-    {
-        return (std::thread(&ForkThread::ThreadCatcher, this));
-    }
-
-void    ForkThread::InitSigAndPrintMsg(bool orig)
-    {
-        if (orig) bibArtFork = std::shared_ptr<ForkThread>(this);
-        signal(SIGINT, SignalSigInt);
-        bibArtFork << "Press Ctrl+c to correctly end.";
-        bibArtFork << "Repress Ctrl+c to kill all children and process.";
+        InitSigAndPrintMsg();
     }
 
 ForkThread::~ForkThread()
     {
-        Set_Is_Turning(false);
+        SetKillSwitch(true);
+        SetIsTurning(false);
         fork_catcher.join();
     }
 
 int     ForkThread::GetForkNb()
     {
         fork_nb_mutex.lock();
-        int fork_nb_got = fork_nb;
+        int fork_nb_got = forkNb;
         fork_nb_mutex.unlock();
         return (fork_nb_got);
     }
 
-void    ForkThread::SetForkNb(int with)
-    {
-        fork_nb_mutex.lock();
-        fork_nb += with;
-        fork_nb_mutex.unlock();
-    }
-
-int     ForkThread::ThreadCatcher()
-    {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        std::stringstream ssT, ssK;
-
-        ssT << Get_Is_Turning();
-        ssK << Get_Kill_Switch();
-        bibArtFork << "Thread catcher running. is_turning = " + ssT.str() + ", kill_switch = " + ssK.str();
-        while (Get_Is_Turning() && !Get_Kill_Switch())
-            CatchLoop();
-        return (0);
-    }
-
-void    ForkThread::CatchLoop()
-    {
-        pid_t       catched_pid;
-        int         return_status;
-
-        while (GetForkNb())
-        {
-            catched_pid = wait(&return_status);
-            if (catched_pid > 0) {
-                SetForkNb(-1);
-                std::stringstream ssP, ssR;
-
-                ssP << catched_pid;
-                ssR << return_status;
-                bibArtFork << "the pid: " + ssP.str() + " ended with status: " + ssR.str();
-            }
-        }
-    }
-
-void    ForkThread::Fork(void *data)
+void    ForkThread::Fork(void * data)
     {
         pid_t       pid;
         int         random_time;
@@ -111,20 +39,16 @@ void    ForkThread::Fork(void *data)
         random_time = (std::rand() % 10) + 1;
         pid = fork();
         if (!pid) {
-            if (fork_action)
-                fork_action(data);
+            if (forkAction)
+                forkAction(data);
             else
                 BasicForkAction(random_time);
             exit(0);
         } else if (pid > 0) {
             SetForkNb(1);
-            std::stringstream ssP, ssR;
-
-            ssP << pid;
-            ssR << random_time;
-            bibArtFork << "Child created with pid: " + ssP.str() + " for: " + ssR.str() + " seconds.";
+            *this << "Child created with pid: " << pid << " for: " << random_time << " seconds." << std::endl;
         } else {
-            bibArtFork >> "Fork failed.";
+            *this >> "Fork failed." << std::endl;
         }
     }
 
@@ -136,111 +60,236 @@ void    ForkThread::Fork()
         random_time = (std::rand() % 10) + 1;
         pid = fork();
         if (!pid) {
-            if (fork_action)
-                fork_action(&random_time);
+            if (forkAction)
+                forkAction(&random_time);
             else
                 BasicForkAction(random_time);
             exit(0);
         } else if (pid > 0) {
             SetForkNb(1);
-            std::stringstream ssP, ssR;
-
-            ssP << pid;
-            ssR << random_time;
-            bibArtFork << "Child created with pid: " + ssP.str() + " for: " + ssR.str() + " seconds.";
+            *this << "Child created with pid: " << pid << " for: " << random_time << " seconds." << std::endl;
         } else {
-            bibArtFork >> "Fork failed.";
+            *this >> "Fork failed." << std::endl;
         }
+    }
+
+void    ForkThread::SetForkAction(void (*action) (void *))
+    {
+        // maybe to securize
+        forkAction = action;
+    }
+
+void    ForkThread::SetIsTurning(bool toState)
+    {
+        is_turning_mutex.lock();
+        isTurning = toState;
+        is_turning_mutex.unlock();
+    }
+
+bool    ForkThread::GetIsTurning()
+    {
+        is_turning_mutex.lock();
+        int is_turning_now = isTurning;
+        is_turning_mutex.unlock();
+        return (is_turning_now);
+    }
+
+void    ForkThread::SetKillSwitch(bool toState)
+    {
+        kill_switch_mutex.lock();
+        killSwitch = toState;
+        kill_switch_mutex.unlock();
+    }
+
+bool    ForkThread::GetKillSwitch()
+    {
+        kill_switch_mutex.lock();
+        int kill_switch_got = killSwitch;
+        kill_switch_mutex.unlock();
+        return (kill_switch_got);
+    }
+
+void    ForkThread::InitSigAndPrintMsg()
+    {
+        std::cout << "This basic testing purposes program can fail if the number of fork to do is to high, so be aware of." << std::endl;
+        std::cout << "Press Ctrl+c to test normal ending." << std::endl;
+        std::cout << "Now there is no signal usage to respond to the requested empty-signal principle." << std::endl;
+    }
+
+void    ForkThread::CatchLoop()
+    {
+        pid_t       catched_pid;
+        int         return_status;
+
+        while (GetForkNb() > 0)
+        {
+            catched_pid = wait(&return_status);
+            if (catched_pid > 0) {
+                SetForkNb(-1);
+                *this << "The pid: " << catched_pid << " ended with status: " << return_status << "." << std::endl;
+                catched_pid = 0;
+            }
+        }
+    }
+
+void    ForkThread::SetForkNb(int paritedUnit)
+    {
+        fork_nb_mutex.lock();
+        forkNb += paritedUnit;
+        fork_nb_mutex.unlock();
+    }
+
+void     ForkThread::ThreadCatcher()
+    {
+        *this << "Thread catcher running. is_turning = " << GetIsTurning() << "." << std::endl;
+        while (!GetKillSwitch() && GetIsTurning())
+            CatchLoop();
+        CatchLoop();
     }
 
 void    ForkThread::BasicForkAction(int time_data)
     {
         std::this_thread::sleep_for(std::chrono::seconds(time_data));
-        std::stringstream ssT;
-
-        ssT << time_data;
-        bibArtFork << "Child ended after: " + ssT.str() + " seconds.";
+        *this << "Child ended after: " << time_data << " seconds." << std::endl;
     }
 
-void    SignalSigInt(int __attribute__((unused)) sig)
+template<typename T>
+[[optimize_for_synchronized]]
+std::ostream &  ostream::operator<<(std::ostream & hereOs, const T varToSecure)
     {
-        bibArtFork.get()->Set_Is_Turning(false);
-        signal(SIGINT, SignalSigKill);
-        exit(0);
+        synchronized {
+            hereOs.operator<<(varToSecure);
+        }
+        return (hereOs);
     }
 
-void    SignalSigKill(int __attribute__((unused)) sig)
+template<typename T>
+[[optimize_for_synchronized]]
+std::ostream &  ostream::operator<<(std::ostream & hereOs, const T * varToSecure)
     {
-        bibArtFork.get()->Set_Kill_Switch(true);
-        kill(0, SIGKILL);
-        exit(0);
+       synchronized {
+            hereOs.operator<<(varToSecure);
+        }
+        return (hereOs);        
     }
 
-void    ForkThread::Set_Fork_Action(void (*action) (void *))
+[[optimize_for_synchronized]]
+std::ostream & ostream::operator<<(std::ostream & hereOs, std::string const & following)
     {
-        fork_action = action;
+        synchronized {
+            hereOs << following;
+        }
+        return (hereOs);
     }
 
-
-void    ForkThread::Set_Is_Turning(bool is)
+[[optimize_for_synchronized]]
+std::ostream &  ostream::operator<<(std::ostream & hereOs, std::ostream & following)
     {
-        static std::mutex mutex;
-        mutex.lock();
-        is_turning = is;
-        mutex.unlock();
+        synchronized {
+            hereOs << following.rdbuf();
+        }
+        return (hereOs);
     }
 
-bool    ForkThread::Get_Is_Turning()
+[[optimize_for_synchronized]]
+std::ostream & ostream::operator<<(std::ostream & hereOs, std::ostream& (*func) (std::ostream&))
     {
-        static std::mutex mutex;
-        mutex.lock();
-        int is_turning_now = is_turning;
-        mutex.unlock();
-        return (is_turning_now);
+       synchronized {
+           hereOs.operator<<(func);
+        }
+        return (hereOs);
     }
 
-void    ForkThread::Set_Kill_Switch(bool set)
+template<typename T>
+[[optimize_for_synchronized]]
+std::ostream &   operator<<(__attribute__((unused)) ForkThread const & that, const T following)
     {
-        static std::mutex mutex;
-        mutex.lock();
-        kill_switch = set;
-        mutex.unlock();
+        synchronized {
+            std::cout << following;
+            return (std::cout);
+        }
     }
 
-bool    ForkThread::Get_Kill_Switch()
+template<typename T>
+[[optimize_for_synchronized]]
+std::ostream &   operator<<(__attribute__((unused)) ForkThread const & that, const T * following)
     {
-        static std::mutex mutex;
-        mutex.lock();
-        int kill_switch_got = kill_switch;
-        mutex.unlock();
-        return (kill_switch);
+        synchronized {
+            std::cout << following;
+            return (std::cout);
+        }
     }
 
-
-void    ForkThread::StopCatcherThread()
+[[optimize_for_synchronized]]
+std::ostream &   operator<<(__attribute__((unused)) ForkThread const & that, std::string const & following)
     {
-        delete bibArtFork.get();
+        synchronized {
+            std::cout << following;
+            return (std::cout);
+        }
     }
 
-void  operator<<(std::shared_ptr<ForkThread> & it, std::string msg)
+[[optimize_for_synchronized]]
+std::ostream &   operator<<(__attribute__((unused)) ForkThread const & that, std::ostream & following)
     {
-        static std::mutex cout_mutex;
-        std::stringstream ss;
-
-        ss << msg;
-        cout_mutex.lock();
-        std::cout << ss.str() << std::endl;
-        cout_mutex.unlock();
+        synchronized {
+            std::cout << following.rdbuf();
+            return (std::cout);
+        }
     }
 
-void  operator>>(std::shared_ptr<ForkThread> & it, std::string msg)
+[[optimize_for_synchronized]]
+std::ostream &  operator<<(__attribute__((unused)) ForkThread const & that, std::ostream & (*func) (std::ostream &))
     {
-        static std::mutex cerr_mutex;
-        std::stringstream ss;
-
-        ss << msg;
-        cerr_mutex.lock();
-        std::cerr << ss.str() << std::endl;
-        cerr_mutex.unlock();
+       synchronized {
+            std::cout << func;
+            return (std::cout);
+        }
     }
 
+template<typename T>
+[[optimize_for_synchronized]]
+std::ostream &   operator>>(__attribute__((unused)) ForkThread const & that, const T following)
+    {
+        synchronized {
+            std::cerr << following;
+            return (std::cerr);
+        }
+    }
+
+template<typename T>
+[[optimize_for_synchronized]]
+std::ostream &   operator>>(__attribute__((unused)) ForkThread const & that, const T * following)
+    {
+        synchronized {
+            std::cerr << following;
+            return (std::cerr);
+        }
+    }
+
+[[optimize_for_synchronized]]
+std::ostream &   operator>>(__attribute__((unused)) ForkThread const & that, std::string const & following)
+    {
+        synchronized {
+            std::cerr << following;
+            return (std::cerr);
+        }
+    }
+
+[[optimize_for_synchronized]]
+std::ostream &   operator>>(__attribute__((unused)) ForkThread const & that, std::ostream & following)
+    {
+        synchronized {
+            std::cerr << following.rdbuf();
+            return (std::cerr);
+        }
+    }
+
+[[optimize_for_synchronized]]
+std::ostream &  operator>>(__attribute__((unused)) ForkThread const & that, std::ostream & (*func) (std::ostream &))
+    {
+       synchronized {
+            std::cerr << func;
+            return (std::cerr);
+        }
+    }
