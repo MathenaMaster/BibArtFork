@@ -204,7 +204,7 @@ template<typename T>
 [[optimize_for_synchronized]]
 std::ostream &   operator<<(__attribute__((unused)) ForkThread const & that, const T following)
     {
-        synchronized {
+        synchronized /* sync_out_token_if_evolved */ {
             std::cout << following;
             return (std::cout);
         }
@@ -214,7 +214,7 @@ template<typename T>
 [[optimize_for_synchronized]]
 std::ostream &   operator<<(__attribute__((unused)) ForkThread const & that, const T * following)
     {
-        synchronized {
+        synchronized /* sync_out_token_if_evolved */ {
             std::cout << following;
             return (std::cout);
         }
@@ -223,7 +223,7 @@ std::ostream &   operator<<(__attribute__((unused)) ForkThread const & that, con
 [[optimize_for_synchronized]]
 std::ostream &   operator<<(__attribute__((unused)) ForkThread const & that, std::string const & following)
     {
-        synchronized {
+        synchronized /* sync_out_token_if_evolved */ {
             std::cout << following;
             return (std::cout);
         }
@@ -232,7 +232,7 @@ std::ostream &   operator<<(__attribute__((unused)) ForkThread const & that, std
 [[optimize_for_synchronized]]
 std::ostream &   operator<<(__attribute__((unused)) ForkThread const & that, std::ostream & following)
     {
-        synchronized {
+        synchronized /* sync_out_token_if_evolved */ {
             std::cout << following.rdbuf();
             return (std::cout);
         }
@@ -241,7 +241,7 @@ std::ostream &   operator<<(__attribute__((unused)) ForkThread const & that, std
 [[optimize_for_synchronized]]
 std::ostream &  operator<<(__attribute__((unused)) ForkThread const & that, std::ostream & (*func) (std::ostream &))
     {
-       synchronized {
+       synchronized /* sync_out_token_if_evolved */ {
             std::cout << func;
             return (std::cout);
         }
@@ -251,7 +251,7 @@ template<typename T>
 [[optimize_for_synchronized]]
 std::ostream &   operator>>(__attribute__((unused)) ForkThread const & that, const T following)
     {
-        synchronized {
+        synchronized /* sync_err_token_if_evolved */ {
             std::cerr << following;
             return (std::cerr);
         }
@@ -261,7 +261,7 @@ template<typename T>
 [[optimize_for_synchronized]]
 std::ostream &   operator>>(__attribute__((unused)) ForkThread const & that, const T * following)
     {
-        synchronized {
+        synchronized /* sync_err_token_if_evolved */ {
             std::cerr << following;
             return (std::cerr);
         }
@@ -270,7 +270,7 @@ std::ostream &   operator>>(__attribute__((unused)) ForkThread const & that, con
 [[optimize_for_synchronized]]
 std::ostream &   operator>>(__attribute__((unused)) ForkThread const & that, std::string const & following)
     {
-        synchronized {
+        synchronized /* sync_err_token_if_evolved */ {
             std::cerr << following;
             return (std::cerr);
         }
@@ -279,7 +279,7 @@ std::ostream &   operator>>(__attribute__((unused)) ForkThread const & that, std
 [[optimize_for_synchronized]]
 std::ostream &   operator>>(__attribute__((unused)) ForkThread const & that, std::ostream & following)
     {
-        synchronized {
+        synchronized /* sync_err_token_if_evolved */ {
             std::cerr << following.rdbuf();
             return (std::cerr);
         }
@@ -288,7 +288,7 @@ std::ostream &   operator>>(__attribute__((unused)) ForkThread const & that, std
 [[optimize_for_synchronized]]
 std::ostream &  operator>>(__attribute__((unused)) ForkThread const & that, std::ostream & (*func) (std::ostream &))
     {
-       synchronized {
+       synchronized /* sync_err_token_if_evolved */ {
             std::cerr << func;
             return (std::cerr);
         }
