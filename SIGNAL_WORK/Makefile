@@ -6,7 +6,7 @@ CC			=		g++
 
 OBJ			+=		$(SRC:.cpp=.o)
 
-CXXFLAGS	+=		-lpthread --std=c++20 -fgnu-tm
+CXXFLAGS	+=		--std=c++20 -fgnu-tm
 
 OUTFILE		+=		./out.txt
 ERRFILE		+=		./err.txt

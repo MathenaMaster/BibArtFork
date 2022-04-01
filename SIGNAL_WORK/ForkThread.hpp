@@ -19,10 +19,11 @@ class                       ForkThread {
     std::mutex              fork_nb_mutex;
     std::mutex              is_turning_mutex;
     std::mutex              kill_switch_mutex;
+    void *                  common_data;
     
     public:
 
-                            ForkThread(void (*fork_action_entry)(void *) = nullptr);
+                            ForkThread(void (*fork_action_entry)(void *) = nullptr, void * base_data = nullptr);
                             ~ForkThread();
     int                     GetForkNb();
     void                    Fork(void *);
@@ -44,29 +45,45 @@ class                       ForkThread {
 
 namespace ostream {
     template<typename T>
-    std::ostream &          operator<<(std::ostream &, const T);
+    std::ostream &          operator<<(std::ostream &, T const);
     template<typename T>
-    std::ostream &          operator<<(std::ostream &, const T *);    
+    std::ostream &          operator<<(std::ostream &, T const *);    
     std::ostream &          operator<<(std::ostream &, std::string const &);
     std::ostream &          operator<<(std::ostream &, std::ostream &);
     std::ostream &          operator<<(std::ostream &, std::ostream & (*) (std::ostream &));
 };
 
     template<typename T>
-    std::ostream &          operator<<(ForkThread const &, const T);
+    std::ostream &          operator<<(ForkThread &, T const);
     template<typename T>
-    std::ostream &          operator<<(ForkThread const &, const T *);
-    std::ostream &          operator<<(ForkThread const &, std::string const &);
-    std::ostream &          operator<<(ForkThread const &, std::ostream &);
-    std::ostream &          operator<<(ForkThread const &, std::ostream & (*) (std::ostream &));
+    std::ostream &          operator<<(ForkThread &, T const *);
+    std::ostream &          operator<<(ForkThread &, std::string const &);
+    std::ostream &          operator<<(ForkThread &, std::ostream &);
+    std::ostream &          operator<<(ForkThread &, std::ostream & (*) (std::ostream &));
 
     template<typename T>
-    std::ostream &          operator>>(ForkThread const &, const T);
+    std::ostream &          operator>>(ForkThread &, T const);
     template<typename T>
-    std::ostream &          operator>>(ForkThread const &, const T *);
-    std::ostream &          operator>>(ForkThread const &, std::string const &);
-    std::ostream &          operator>>(ForkThread const &, std::ostream &);
-    std::ostream &          operator>>(ForkThread const &, std::ostream & (*) (std::ostream &));
+    std::ostream &          operator>>(ForkThread &, T const *);
+    std::ostream &          operator>>(ForkThread &, std::string const &);
+    std::ostream &          operator>>(ForkThread &, std::ostream &);
+    std::ostream &          operator>>(ForkThread &, std::ostream & (*) (std::ostream &));
+
+
+    template<typename T>
+    std::ostream &          operator<<(std::unique_ptr<ForkThread> &, T const);
+    std::ostream &          operator<<(std::unique_ptr<ForkThread> &, char const *);
+    std::ostream &          operator<<(std::unique_ptr<ForkThread> &, std::string const &);
+    std::ostream &          operator<<(std::unique_ptr<ForkThread> &, std::ostream &);
+    std::ostream &          operator<<(std::unique_ptr<ForkThread> &, std::ostream & (*) (std::ostream &));
+
+    template<typename T>
+    std::ostream &          operator>>(std::unique_ptr<ForkThread> &, T const);
+    std::ostream &          operator>>(std::unique_ptr<ForkThread> &, char const *);
+    std::ostream &          operator>>(std::unique_ptr<ForkThread> &, std::string const &);
+    std::ostream &          operator>>(std::unique_ptr<ForkThread> &, std::ostream &);
+    std::ostream &          operator>>(std::unique_ptr<ForkThread> &, std::ostream & (*) (std::ostream &));
+
 
 extern std::unique_ptr<ForkThread>      bibArtFork;
 
