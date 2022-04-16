@@ -46,12 +46,12 @@ class                       ForkThread {
 
 namespace ostream {
     template<typename T>
-    std::ostream &          operator<<(std::ostream &, T const);
+    static std::ostream &          operator<<(std::ostream &, T const);
     template<typename T>
-    std::ostream &          operator<<(std::ostream &, T const *);    
-    std::ostream &          operator<<(std::ostream &, std::string const &);
-    std::ostream &          operator<<(std::ostream &, std::ostream &);
-    std::ostream &          operator<<(std::ostream &, std::ostream & (*) (std::ostream &));
+    static std::ostream &          operator<<(std::ostream &, T const *);    
+    static std::ostream &          operator<<(std::ostream &, std::string const &);
+    static std::ostream &          operator<<(std::ostream &, std::ostream &);
+    static std::ostream &          operator<<(std::ostream &, std::ostream & (*) (std::ostream &));
 }
 
     template<typename T>

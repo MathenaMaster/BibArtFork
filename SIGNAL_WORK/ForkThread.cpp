@@ -51,8 +51,7 @@ void    ForkThread::Fork(void * data)
             if (forkAction) forkAction(data);
             else BasicTestForkAction(random_time);
             exit(0);
-        } else if (pid > 0)
-        {
+        } else if (pid > 0) {
             SetForkNb(1);
             *this << "Child created with pid: " << pid << " for: " << random_time << " seconds." << std::endl;
         } else *this >> "Fork failed." << std::endl;
