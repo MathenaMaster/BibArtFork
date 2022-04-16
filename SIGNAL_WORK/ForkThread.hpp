@@ -11,6 +11,7 @@
 class                       ForkThread {
     private:
 
+    int                     maxForkNb;
     int                     forkNb;
     int                     killSwitch;
     bool                    isTurning;
@@ -23,7 +24,7 @@ class                       ForkThread {
     
     public:
 
-                            ForkThread(void (*fork_action_entry)(void *) = nullptr, void * base_data = nullptr);
+                            ForkThread(int maxFork = 0, void (*fork_action_entry)(void *) = nullptr, void * base_data = nullptr);
                             ~ForkThread();
     int                     GetForkNb();
     void                    Fork(void *);
@@ -36,11 +37,11 @@ class                       ForkThread {
 
     private:
 
-    void                    InitSigAndPrintMsg();
+    void                    PrintMsg();
     void                    CatchLoop();
     void                    SetForkNb(int);
     void                    ThreadCatcher();
-    void                    BasicForkAction(int);
+    void                    BasicTestForkAction(int);
 };
 
 namespace ostream {
@@ -51,7 +52,7 @@ namespace ostream {
     std::ostream &          operator<<(std::ostream &, std::string const &);
     std::ostream &          operator<<(std::ostream &, std::ostream &);
     std::ostream &          operator<<(std::ostream &, std::ostream & (*) (std::ostream &));
-};
+}
 
     template<typename T>
     std::ostream &          operator<<(ForkThread &, T const);
@@ -84,7 +85,14 @@ namespace ostream {
     std::ostream &          operator>>(std::unique_ptr<ForkThread> &, std::ostream &);
     std::ostream &          operator>>(std::unique_ptr<ForkThread> &, std::ostream & (*) (std::ostream &));
 
+namespace std {
+    typedef std::unique_ptr<ForkThread>     bibArtType;
+    std::bibArtType                         CreateBibArt(int maxFork = 0, void (*action) (void *) = nullptr, void * base_data = nullptr);
+}
 
-extern std::unique_ptr<ForkThread>      bibArtFork;
+#ifdef __MAKE_BIBART__
+    extern std::bibArtType  bibArtFork;
+    std::bibArtType         bibArtFork = std::CreateBibArt();
+#endif
 
 #endif /* !__FORKTHREAD__ */
