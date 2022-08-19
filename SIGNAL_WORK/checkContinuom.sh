@@ -1,12 +1,12 @@
 #!/bin/bash
 
-presentleft=3
+presentleft=2
 min=2
-while [ $presentleft -gt 1 ];
+while [ $presentleft -gt 0 ];
     do sleep 2
     presentleft=$(ps -aux | grep './bibArt' | wc -l)
     presentleft=$(($presentleft - $min))
-    if [ $presentleft -lt 0 ]; then presentleft=0; fi
+    if [ $presentleft -le 0 ]; then presentleft=0; fi
     echo "$presentleft babies of biba alive!"
 done
 echo "No more"
