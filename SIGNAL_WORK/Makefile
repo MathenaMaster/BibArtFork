@@ -6,7 +6,7 @@ CC			=		g++
 
 OBJ			+=		$(SRC:.cpp=.o)
 
-CXXFLAGS	+=		--std=c++20 -fgnu-tm --std=c++2a -g
+CXXFLAGS	+=		--std=c++20 -fgnu-tm -g
 
 LDLIBS		+=		-lstdc++
 
@@ -36,6 +36,12 @@ execute:
 		./$(NAME) > $(OUTFILE) 2> $(ERRFILE)
 		make ps
 
+ForkTestLoop:
+		./continuousForkTest.sh
+
+rollCheck:
+		./rollCheck.sh
+
 progressCheck:
 		./pidLoopChecker.sh
 
@@ -46,10 +52,9 @@ continuousForkCheck:
 		./checkContinuom.sh
 
 gdb:
-		gdb ./$(NAME)
-
+		gdb ./$(NAME) --command=gdbthings.gdb
 reset:
 		pkill -9 $(NAME)
 		pkill -9 $(NAME)
 
-.PHONY:			clean fclean re all ps execute progressCheck testFinalOut continuousForkCheck gdb reset
+.PHONY:			all clean fclean re ps execute ForkTestLoop rollCheck progressCheck testFinalOut continuousForkCheck gdb reset

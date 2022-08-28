@@ -13,70 +13,6 @@
 bibArtType             bibArtFork = ForkThread<__LIMIT__, __SYSTEM__>::CreateBibArt();
 
 template<typename T, typename S>
-std::ostream &    ForkThread<T, S>::CommonPrinter(char const * format, std::ostream & os, va_list & suit)
-{
-    union Printable_t Printable;
-
-    for (int i = 0; format[i]; ++i)
-    {
-        switch (format[i])
-        {
-            case 'l':
-                Printable.l = va_arg(suit, unsigned long);
-                os << Printable.l;
-                break;
-            case 'i':
-                Printable.i = va_arg(suit, unsigned int);
-                os << Printable.i;
-                break;
-            case 's':
-                Printable.s = va_arg(suit, unsigned int);
-                os << Printable.s;
-                break;
-            case 'c':
-                Printable.c = va_arg(suit, unsigned int);
-                os << Printable.c;
-                break;
-            case 'd':
-                Printable.d = va_arg(suit, double);
-                os << Printable.d;
-                break;
-            case 'f':
-                Printable.f = va_arg(suit, double);
-                os << Printable.f;
-                break;
-            case 'p':
-                Printable.p = va_arg(suit, char *);
-                os << Printable.p;
-                break;
-            }
-        }
-    return (os);
-}
-
-template<typename T, typename S>
-std::ostream &    ForkThread<T, S>::ToCout(char const * format, ...)
-{
-    va_list     suit;
-
-    va_start(suit, format);
-    std::ostream & outOs = Grab(CommonPrinter(format, std::cout, suit));
-    va_end(suit);
-    return (outOs);
-}
-
-template<typename T, typename S>
-std::ostream &    ForkThread<T, S>::ToCerr(char const * format, ...)
-{
-    va_list     suit;
-
-    va_start(suit, format);
-    std::ostream & outOs = Grab(CommonPrinter(format, std::cerr, suit));
-    va_end(suit);
-    return (outOs);
-}
-
-template<typename T, typename S>
 bool    ForkThread<T, S>::TestSystemAvailability()
     {
         S   activeNb = 0;
@@ -85,10 +21,10 @@ bool    ForkThread<T, S>::TestSystemAvailability()
         if ((T) maxForkNb == (T) -1) {
             try {
                 activeNb = system("ps -aux --no-header | wc -l");
-                ToCout("plp", "Real system usage is: ", activeNb, "\n");
-                ToCout("plplplp", "Actual employment is: ", actualUsage, " on: ", maxForkNb, " or: ", classLimit, "\n");
+                *std::cout << "Real system usage is: " << activeNb << std::endl;
+                *std::cout << "Actual employment is: " << actualUsage << " on automated maximum usage: " << classLimit << " or system limt: " << systemLimit << std::endl;
             } catch (std::exception e) {
-                ToCerr("ppp", "Problem to get real system usage info! Error info is: ", e.what(), "\n");
+                *std::cerr << "Problem to get real system usage info! Error info is: " << e.what() << std::endl;
                 return (false);
             }
             return ((T) actualUsage < (T) classLimit && (S) activeNb < (S) systemLimit);
@@ -100,36 +36,37 @@ bool    ForkThread<T, S>::TestSystemAvailability()
     }
 
 template<typename T, typename S>
-ForkThread<T, S>::ForkThread(T maxFork, T classLimit, S systemLimit, void (*fork_action_entry)(void *), void * base_data) :
+ForkThread<T, S>::ForkThread(T maxFork, T classLimit, S systemLimit, /*std::function<void(void*)> fork_action_entry*/ void (*fork_action_entry)(void *), void * base_data) :
     maxForkNb(maxFork), forkNb(0), classLimit(classLimit), systemLimit(systemLimit), killSwitch(false), forkAction(fork_action_entry),
     common_data(base_data), fork_catcher(std::thread(&ForkThread<T, S>::ThreadCatcher, this))
     {
         if (sizeof(T) > sizeof(S)) {
-            ToCerr("p", "You cannot define the system binary size to an inferior value than the class is supposed to handle.\n");
-            throw std::invalid_argument("System size inferior to usage size");
+            *std::cerr << "You cannot define the system binary size to an inferior capacity than the class is supposed to handle." << std::endl;
+            throw std::invalid_argument("System size inferior to class usage specfied size");
         } if ((T) maxFork == (T) -1) {
-            ToCerr("p", "You used an option (-1) that means: 'manage -automaticaly/during the runtime- the max number and the limitation of available processes in the limit of the system and the instance definition.\n");
+            *std::cerr << "You used an option (-1) that means: 'manage -automaticaly/during the runtime- the max number and the limitation of available processes in the limit of the system and the instance definition." << std::endl;
         }
         PrintMsg();
-        ToCerr("p", "AN INSTANCE HAS BEEN CREATED\n");
+        *std::cerr << "AN INSTANCE HAS BEEN CREATED" << std::endl;
     }
 
 template<typename T, typename S>
 ForkThread<T, S>::~ForkThread()
     {
         SwitchOffKillSwitch();
-        fork_catcher.join();
+        while (fork_catcher.joinable()) fork_catcher.join();
+        //fork_catcher.join();
     }
 
 template<typename T, typename S>
 void    ForkThread<T, S>::PrintMsg()
     {
-        ToCout("p", "Press Ctrl+c to test provocated ending.\n");
-        ToCout("p", "Now there is no signal handling to respond to the requested no signal principle.\n");
+        *std::cout << "Press Ctrl+c to test provocated ending." << std::endl;        
+        *std::cout << "Now there is no signal handling to respond to the requested no signal principle." << std::endl;
     }
 
 template<typename T, typename S>
-void    ForkThread<T, S>::SetForkNb(char paritedUnit)
+void       ForkThread<T, S>::SetForkNb(char paritedUnit)
     {
         fork_nb_mutex.lock();
         forkNb += paritedUnit;
@@ -156,7 +93,7 @@ template<typename T, typename S>
 void    ForkThread<T, S>::SwitchOffKillSwitch()
     {
         kill_switch_mutex.lock();
-        killSwitch = false;
+        killSwitch = true;
         kill_switch_mutex.unlock();
     }
 
@@ -180,12 +117,12 @@ void    ForkThread<T, S>::Fork(void * data)
             if (!pid) {
                 if (forkAction) forkAction(data);
                 else BasicTestForkAction(random_time);
-                exit(0);
+                exit(0); // Be sure you exit(?) in the child code. It's just an overload security
             } else if (pid > 0) {
                 SetForkNb(1);
-                ToCout("plpip", "Child created with pid: ", pid, " for: ", random_time, " seconds.\n");
-            } else ToCerr("p", "Fork failed.\n");
-        } else ToCerr("p", "You have reached the max number of available processes.\n");
+                *std::cout << "Child created with pid: " << pid << " for: " << random_time << " seconds." << std::endl;
+            } else *std::cerr << "Fork failed." << std::endl;
+        } else *std::cerr << "You have reached the max number of available processes." << std::endl;
     }
 
 template<typename T, typename S>
@@ -202,60 +139,68 @@ void    ForkThread<T, S>::Fork()
                 exit(0);
             } else if (pid > 0) {
                 SetForkNb(1);
-                ToCout("plpip", "Child created with pid: ", pid, " for: ", random_time, " seconds.\n");
-            } else ToCerr("p", "Fork failed.\n");
-        } else ToCerr("p", "You have reached the max number of available processes.\n");
+                *std::cout << "Child created with pid: " << pid << " for: " << random_time << " seconds." << std::endl;
+            } else *std::cerr << "Fork failed." << std::endl;
+        } else *std::cerr << "You have reached the max number of available processes." << std::endl;
     }
 
-/*
+
 template<typename T, typename S>
 void    ForkThread<T, S>::EndCatchLoop()
     {
         pid_t       catched_pid;
-        int         return_status;
+        int         return_status = 0;
+        T           actual_fork_nb;
 
-        while (GetForkNb() > (T) 0)
+        while ((actual_fork_nb = GetForkNb()) > 0)
         {
-            catched_pid = 0;
             catched_pid = waitpid(-1, &return_status, WNOHANG);
             if (catched_pid > 0) {
                 SetForkNb(-1);
-                ToCout("pipip", "The END CATCHED pid: ", catched_pid, " ended with status: ", return_status, ".\n");
-            }
+                *std::cerr << "The ENDLOOP CATCHED pid: " << catched_pid << " ended with status: " << return_status << std::endl;
+                *std::cerr << "There is actually: " << actual_fork_nb << " left in processing" << std::endl;
+            } else *std::cerr << "ENDLOOP not over but conntinuing with a global number of child of: " << GetForkNb() << std::endl;
+            catched_pid = 0;
+            return_status = 0;
         }
     }
-*/
 
 template<typename T, typename S>
 void    ForkThread<T, S>::CatchLoop()
     {
-        pid_t       catched_pid = 0;
-        int         return_status;
+        pid_t       catched_pid;
+        int         return_status = 0;
+        T           actual_fork_nb;
 
-        while (GetForkNb() > (T) 0)
+        while ((actual_fork_nb = GetForkNb()) > 0)
         {
             catched_pid = wait(&return_status);
-            if (catched_pid > 0) {
+            if (catched_pid > 0) { // | WIFEXITED(return_status) | WIFSIGNALED(return_status) | WCOREDUMP(return_status)) {
                 SetForkNb(-1);
-                ToCout("pipip", "The pid: ", catched_pid, " ended with status: ", return_status, ".\n");
+                *std::cout << "The pid: " << catched_pid << " ended with status: " << return_status << std::endl; //*this << "The pid: " << catched_pid << " ended with status: " << return_status << std::endl;
+                *std::cerr << "There's stil actual_fork_nb: " << actual_fork_nb << " and: " << GetForkNb() << " real (-1) forkNb left in processing" << std::endl;
+            } else {
+                *std::cout << "The wait failed and the pid: " << catched_pid << " ended with status: " << return_status << std::endl;
+                *std::cerr << "There's stil actual_fork_nb: " << actual_fork_nb << " and: " << GetForkNb() << " real forkNb left in processing" << std::endl;
             }
-            catched_pid = 0;
+            return_status = 0;
         }
     }
 
 template<typename T, typename S>
 void     ForkThread<T, S>::ThreadCatcher()
     {
-        ToCout("pip", "Thread catcher running. kill_switch = ", GetKillSwitch(), ".\n");
+        *std::cout << "Thread catcher running. kill_switch = " << GetKillSwitch() << std::endl;
         while (!GetKillSwitch()) CatchLoop();
-        CatchLoop(); // maybe to retire if no security proof
+        //CatchLoop(); // maybe to retire if no security proof
     }
 
 template<typename T, typename S>
 void    ForkThread<T, S>::BasicTestForkAction(int time_data)
     {
         std::this_thread::sleep_for(std::chrono::seconds(time_data));
-        ToCout("pip", "Child ended after: ", time_data, " seconds.\n");
+        *std::cout << "Child ended after: " << time_data << " seconds." << std::endl;
+        exit(0);
     }
 
 template<std::string const &>
@@ -272,16 +217,28 @@ std::ostream &  ostream::operator<<(std::ostream & hereOs, std::ostream & follow
         return (hereOs);
     }
 
+template<std::ostream &(*)(std::ostream &)>
+[[optimize_for_synchronized]]
+std::ostream &  ostream::operator<<(std::ostream & hereOs, std::ostream & (*following)(std::ostream &))
+    {
+        synchronized {
+            hereOs.operator<<(following);
+        }
+        return (hereOs);
+    }
+
+[[optimize_for_synchronized]]
+std::ostream &  operator*(std::ostream & that)
+    {
+        synchronized {
+            return (that);
+        }
+    }
+
 template<typename T, typename S>
 bibArtType    ForkThread<T, S>::CreateBibArt(T maxFork, void (*action) (void *), void * base_data)
     {
-        return (std::unique_ptr<ForkThread<T, S>>(new ForkThread<T, S>(maxFork, -3, -4, action, base_data)));
-    }
-
-template <typename T, typename S>
-std::ostream &  ForkThread<T, S>::Grab(std::ostream & os)
-    {
-        return (os.flush());
+        return (std::unique_ptr<ForkThread<T, S>>(new ForkThread<T, S>(maxFork, -3, -3, action, base_data)));
     }
 
 /*
