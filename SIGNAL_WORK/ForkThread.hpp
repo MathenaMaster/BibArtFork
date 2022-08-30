@@ -5,6 +5,7 @@
 #include <ostream>
 #include <iostream>
 #include <functional>
+#include "osthings.hpp"
 
 #ifndef __FORKTHREAD__
 #define __FORKTHREAD__
@@ -53,15 +54,18 @@ class                       ForkThread {
     bool                    TestSystemAvailability();
 };
 
+/*
 namespace ostream {
     template<std::string const &>
-    static std::ostream &          operator<<(std::ostream &, std::string const &);
+    static std::ostream &           operator<<(std::ostream &, std::string const &);
     template<std::ostream &>
-    static std::ostream &          operator<<(std::ostream &, std::ostream &);
-    template<std::ostream &>
-    static std::ostream &          operator<<(std::ostream &, std::ostream &(*)(std::ostream &));
-};
-    std::ostream &          operator*(std::ostream &);
+    static std::ostream &           operator<<(std::ostream &, std::ostream &);
+    template<std::ostream &(*)(std::ostream)>
+    static std::ostream &           operator<<(std::ostream &, std::ostream &(*)(std::ostream &));
+    //static std::ostream &           operator*(std::ostream &);
+}
+*/
+    //std::ostream &          operator*(std::ostream &);
 
     /*#ifdef FT_8
         typedef unsigned char BIBCOMMON;

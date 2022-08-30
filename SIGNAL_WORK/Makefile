@@ -1,5 +1,7 @@
 NAME		=		bibArt
-SRC			+=		ForkThread.cpp	\
+SRC			+=		osthings.cpp	\
+					bibArtOut.cpp 	\
+					ForkThread.cpp	\
 					main.cpp
 
 CC			=		g++

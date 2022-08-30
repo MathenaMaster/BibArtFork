@@ -7,7 +7,9 @@
 #include <exception>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <stdarg.h>
+//#include <stdarg.h>
+#include "osthings.hpp"
+#include "bibArtOut.hpp"
 #include "ForkThread.hpp"
 
 bibArtType             bibArtFork = ForkThread<__LIMIT__, __SYSTEM__>::CreateBibArt();
@@ -21,10 +23,13 @@ bool    ForkThread<T, S>::TestSystemAvailability()
         if ((T) maxForkNb == (T) -1) {
             try {
                 activeNb = system("ps -aux --no-header | wc -l");
-                *std::cout << "Real system usage is: " << activeNb << std::endl;
-                *std::cout << "Actual employment is: " << actualUsage << " on automated maximum usage: " << classLimit << " or system limt: " << systemLimit << std::endl;
+                //*std::cout << "Real system usage is: " << activeNb << std::endl;
+                *bibOut << "Real system usage is: " << activeNb << std::endl;
+                //*std::cout << "Actual employment is: " << actualUsage << " on automated maximum usage: " << classLimit << " or system limt: " << systemLimit << std::endl;
+                *bibOut << "Actual employment is: " << actualUsage << " on automated maximum usage: " << classLimit << " or system limt: " << systemLimit << std::endl;
             } catch (std::exception e) {
-                *std::cerr << "Problem to get real system usage info! Error info is: " << e.what() << std::endl;
+                //*std::cerr << "Problem to get real system usage info! Error info is: " << e.what() << std::endl;
+                *bibErr << "Problem to get real system usage info! Error info is: " << e.what() << std::endl;
                 return (false);
             }
             return ((T) actualUsage < (T) classLimit && (S) activeNb < (S) systemLimit);
@@ -41,28 +46,33 @@ ForkThread<T, S>::ForkThread(T maxFork, T classLimit, S systemLimit, /*std::func
     common_data(base_data), fork_catcher(std::thread(&ForkThread<T, S>::ThreadCatcher, this))
     {
         if (sizeof(T) > sizeof(S)) {
-            *std::cerr << "You cannot define the system binary size to an inferior capacity than the class is supposed to handle." << std::endl;
+            //*std::cerr << "You cannot define the system binary size to an inferior capacity than the class is supposed to handle." << std::endl;
+            *bibErr << "You cannot define the system binary size to an inferior capacity than the class is supposed to handle." << std::endl;
             throw std::invalid_argument("System size inferior to class usage specfied size");
         } if ((T) maxFork == (T) -1) {
-            *std::cerr << "You used an option (-1) that means: 'manage -automaticaly/during the runtime- the max number and the limitation of available processes in the limit of the system and the instance definition." << std::endl;
+            //*std::cerr << "You used an option (-1) that means: 'manage -automaticaly/during the runtime- the max number and the limitation of available processes in the limit of the system and the instance definition." << std::endl;
+            *bibErr << "You used an option (-1) that means: 'manage -automaticaly/during the runtime- the max number and the limitation of available processes in the limit of the system and the instance definition." << std::endl;
         }
         PrintMsg();
-        *std::cerr << "AN INSTANCE HAS BEEN CREATED" << std::endl;
+        //*std::cerr << "AN INSTANCE HAS BEEN CREATED" << std::endl;
+        *bibErr << "AN INSTANCE HAS BEEN CREATED" << std::endl;
     }
 
 template<typename T, typename S>
 ForkThread<T, S>::~ForkThread()
     {
         SwitchOffKillSwitch();
-        while (fork_catcher.joinable()) fork_catcher.join();
-        //fork_catcher.join();
+        //while (fork_catcher.joinable()) fork_catcher.join();
+        fork_catcher.join();
     }
 
 template<typename T, typename S>
 void    ForkThread<T, S>::PrintMsg()
     {
-        *std::cout << "Press Ctrl+c to test provocated ending." << std::endl;        
-        *std::cout << "Now there is no signal handling to respond to the requested no signal principle." << std::endl;
+        //*std::cout << "Press Ctrl+c to test provocated ending." << std::endl;        
+        *bibOut << "Press Ctrl+c to test provocated ending." << std::endl;        
+        //*std::cout << "Now there is no signal handling to respond to the requested no signal principle." << std::endl;
+        *bibOut << "Now there is no signal handling to respond to the requested no signal principle." << std::endl;
     }
 
 template<typename T, typename S>
@@ -120,9 +130,10 @@ void    ForkThread<T, S>::Fork(void * data)
                 exit(0); // Be sure you exit(?) in the child code. It's just an overload security
             } else if (pid > 0) {
                 SetForkNb(1);
-                *std::cout << "Child created with pid: " << pid << " for: " << random_time << " seconds." << std::endl;
-            } else *std::cerr << "Fork failed." << std::endl;
-        } else *std::cerr << "You have reached the max number of available processes." << std::endl;
+                //*std::cout << "Child created with pid: " << pid << " for: " << random_time << " seconds." << std::endl;
+                *bibOut << "Child created with pid: " << pid << " for: " << random_time << " seconds." << std::endl;
+            } else *bibErr << "Fork failed." << std::endl; //*std::cerr << "Fork failed." << std::endl;
+        } else *bibErr << "You have reached the max number of available processes." << std::endl; //*std::cerr << "You have reached the max number of available processes." << std::endl;
     }
 
 template<typename T, typename S>
@@ -139,9 +150,10 @@ void    ForkThread<T, S>::Fork()
                 exit(0);
             } else if (pid > 0) {
                 SetForkNb(1);
-                *std::cout << "Child created with pid: " << pid << " for: " << random_time << " seconds." << std::endl;
-            } else *std::cerr << "Fork failed." << std::endl;
-        } else *std::cerr << "You have reached the max number of available processes." << std::endl;
+                //*std::cout << "Child created with pid: " << pid << " for: " << random_time << " seconds." << std::endl;
+                *bibOut << "Child created with pid: " << pid << " for: " << random_time << " seconds." << std::endl;
+            } else *bibErr << "Fork failed." << std::endl; //*std::cerr << "Fork failed." << std::endl;
+        } else *bibErr << "You have reached the max number of available processes." << std::endl; //*std::cerr << "You have reached the max number of available processes." << std::endl;
     }
 
 
@@ -157,9 +169,11 @@ void    ForkThread<T, S>::EndCatchLoop()
             catched_pid = waitpid(-1, &return_status, WNOHANG);
             if (catched_pid > 0) {
                 SetForkNb(-1);
-                *std::cerr << "The ENDLOOP CATCHED pid: " << catched_pid << " ended with status: " << return_status << std::endl;
-                *std::cerr << "There is actually: " << actual_fork_nb << " left in processing" << std::endl;
-            } else *std::cerr << "ENDLOOP not over but conntinuing with a global number of child of: " << GetForkNb() << std::endl;
+                //*std::cerr << "The ENDLOOP CATCHED pid: " << catched_pid << " ended with status: " << return_status << std::endl;
+                *bibErr << "The ENDLOOP CATCHED pid: " << catched_pid << " ended with status: " << return_status << std::endl;
+                //*std::cerr << "There is actually: " << actual_fork_nb << " left in processing" << std::endl;
+                *bibErr << "There is actually: " << actual_fork_nb << " left in processing" << std::endl;
+            } else *bibErr << "ENDLOOP not over but conntinuing with a global number of child of: " << GetForkNb() << std::endl; //*std::cerr << "ENDLOOP not over but conntinuing with a global number of child of: " << GetForkNb() << std::endl;
             catched_pid = 0;
             return_status = 0;
         }
@@ -177,11 +191,15 @@ void    ForkThread<T, S>::CatchLoop()
             catched_pid = wait(&return_status);
             if (catched_pid > 0) { // | WIFEXITED(return_status) | WIFSIGNALED(return_status) | WCOREDUMP(return_status)) {
                 SetForkNb(-1);
-                *std::cout << "The pid: " << catched_pid << " ended with status: " << return_status << std::endl; //*this << "The pid: " << catched_pid << " ended with status: " << return_status << std::endl;
-                *std::cerr << "There's stil actual_fork_nb: " << actual_fork_nb << " and: " << GetForkNb() << " real (-1) forkNb left in processing" << std::endl;
+                //*std::cout << "The pid: " << catched_pid << " ended with status: " << return_status << std::endl; //*this << "The pid: " << catched_pid << " ended with status: " << return_status << std::endl;
+                *bibOut << "The pid: " << catched_pid << " ended with status: " << return_status << std::endl; //*this << "The pid: " << catched_pid << " ended with status: " << return_status << std::endl;
+                //*std::cerr << "There's stil actual_fork_nb: " << actual_fork_nb << " and: " << GetForkNb() << " real (-1) forkNb left in processing" << std::endl; //*std::cerr << "There's stil actual_fork_nb: " << actual_fork_nb << " and: " << GetForkNb() << " real (-1) forkNb left in processing" << std::endl; //*std::cerr << "There's stil actual_fork_nb: " << actual_fork_nb << " and: " << GetForkNb() << " real (-1) forkNb left in processing" << std::endl;
+                *bibErr << "There's stil actual_fork_nb: " << actual_fork_nb << " and: " << GetForkNb() << " real (-1) forkNb left in processing" << std::endl;
             } else {
-                *std::cout << "The wait failed and the pid: " << catched_pid << " ended with status: " << return_status << std::endl;
-                *std::cerr << "There's stil actual_fork_nb: " << actual_fork_nb << " and: " << GetForkNb() << " real forkNb left in processing" << std::endl;
+                //*std::cout << "The wait failed and the pid: " << catched_pid << " ended with status: " << return_status << std::endl;
+                *bibOut << "The wait failed and the pid: " << catched_pid << " ended with status: " << return_status << std::endl;
+                //*std::cerr << "There's stil actual_fork_nb: " << actual_fork_nb << " and: " << GetForkNb() << " real forkNb left in processing" << std::endl;
+                *bibErr << "There's stil actual_fork_nb: " << actual_fork_nb << " and: " << GetForkNb() << " real forkNb left in processing" << std::endl;
             }
             return_status = 0;
         }
@@ -190,7 +208,8 @@ void    ForkThread<T, S>::CatchLoop()
 template<typename T, typename S>
 void     ForkThread<T, S>::ThreadCatcher()
     {
-        *std::cout << "Thread catcher running. kill_switch = " << GetKillSwitch() << std::endl;
+        //*std::cout << "Thread catcher running. kill_switch = " << GetKillSwitch() << std::endl;
+        *bibOut << "Thread catcher running. kill_switch = " << GetKillSwitch() << std::endl;
         while (!GetKillSwitch()) CatchLoop();
         //CatchLoop(); // maybe to retire if no security proof
     }
@@ -199,17 +218,19 @@ template<typename T, typename S>
 void    ForkThread<T, S>::BasicTestForkAction(int time_data)
     {
         std::this_thread::sleep_for(std::chrono::seconds(time_data));
-        *std::cout << "Child ended after: " << time_data << " seconds." << std::endl;
+        //*std::cout << "Child ended after: " << time_data << " seconds." << std::endl;
+        *bibOut << "Child ended after: " << time_data << " seconds." << std::endl;
         exit(0);
     }
-
+/*
 template<std::string const &>
 std::ostream & ostream::operator<<(std::ostream & hereOs, std::string const & following)
     {
         hereOs << following.c_str();
         return (hereOs);
     }
-
+*/
+    /*
 template<std::ostream &>
 std::ostream &  ostream::operator<<(std::ostream & hereOs, std::ostream & following)
     {
@@ -218,7 +239,6 @@ std::ostream &  ostream::operator<<(std::ostream & hereOs, std::ostream & follow
     }
 
 template<std::ostream &(*)(std::ostream &)>
-[[optimize_for_synchronized]]
 std::ostream &  ostream::operator<<(std::ostream & hereOs, std::ostream & (*following)(std::ostream &))
     {
         synchronized {
@@ -226,14 +246,15 @@ std::ostream &  ostream::operator<<(std::ostream & hereOs, std::ostream & (*foll
         }
         return (hereOs);
     }
-
-[[optimize_for_synchronized]]
-std::ostream &  operator*(std::ostream & that)
+    */
+/*
+std::ostream &  ostream::operator*(std::ostream & that)
     {
         synchronized {
             return (that);
         }
     }
+*/
 
 template<typename T, typename S>
 bibArtType    ForkThread<T, S>::CreateBibArt(T maxFork, void (*action) (void *), void * base_data)
