@@ -28,3 +28,8 @@ for i in $(seq 1 $3)
     fi
     done
 echo "$3 Multiple test charge launched with each: $4 fork launched"
+
+while [ $(ps | grep bibArt | wc -l) -gt 0 ]
+    do sleep 1
+    done
+ps
