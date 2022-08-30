@@ -40,7 +40,7 @@ class                       ForkThread {
     void                    SwitchOffKillSwitch();
     bool                    GetKillSwitch();
 
-    static std::unique_ptr<ForkThread<__LIMIT__, __SYSTEM__>>       CreateBibArt(T maxFork = 0, void (*action) (void *) = nullptr, void * base_data = nullptr);
+    static std::unique_ptr<ForkThread<__LIMIT__, __SYSTEM__>> &      CreateBibArt(T maxFork = 0, void (*action) (void *) = nullptr, void * base_data = nullptr);
 
 
     private:
@@ -53,21 +53,8 @@ class                       ForkThread {
     void                    BasicTestForkAction(int);
     bool                    TestSystemAvailability();
 };
-
-/*
-namespace ostream {
-    template<std::string const &>
-    static std::ostream &           operator<<(std::ostream &, std::string const &);
-    template<std::ostream &>
-    static std::ostream &           operator<<(std::ostream &, std::ostream &);
-    template<std::ostream &(*)(std::ostream)>
-    static std::ostream &           operator<<(std::ostream &, std::ostream &(*)(std::ostream &));
-    //static std::ostream &           operator*(std::ostream &);
-}
-*/
-    //std::ostream &          operator*(std::ostream &);
-
-    /*#ifdef FT_8
+    /*
+    #ifdef FT_8
         typedef unsigned char BIBCOMMON;
         typedef std::unique_ptr<ForkThread<BIBCOMMON>>      bibArtType;
         //template<typename T = unsigned char>
@@ -90,17 +77,18 @@ namespace ostream {
         typedef std::unique_ptr<ForkThread<BIBCOMMON>>      bibArtType;
         //template<typename T = unsigned long>
         //bibArtType                         CreateBibArt(T maxFork = 0, void (*action) (void *) = nullptr, void * base_data = nullptr);
-    #endif*/
-    //#else
-        //typedef unsigned short BIBCOMMON;
-        //typedef std::unique_ptr<ForkThread<unsigned long, unsigned long>>      bibArtType;
-        //template<typename T = BIBCOMMON>
-        //bibArtType                         CreateBibArt(T maxFork = 0, void (*action) (void *) = nullptr, void * base_data = nullptr);
-        //std::unique_ptr<ForkThread<T>>      CreateBibArt(T maxFork = 0, void (*action) (void *) = nullptr, void * base_data = nullptr);
-    //#endif
-
+    #endif
+    #else
+        typedef unsigned short BIBCOMMON;
+        typedef std::unique_ptr<ForkThread<unsigned long, unsigned long>>      bibArtType;
+        template<typename T = BIBCOMMON>
+        bibArtType                         CreateBibArt(T maxFork = 0, void (*action) (void *) = nullptr, void * base_data = nullptr);
+        std::unique_ptr<ForkThread<T>>      CreateBibArt(T maxFork = 0, void (*action) (void *) = nullptr, void * base_data = nullptr);
+    #endif
+    */
    
-    typedef std::unique_ptr<ForkThread<__LIMIT__, __SYSTEM__>>      bibArtType;
+    typedef ForkThread<__LIMIT__, __SYSTEM__>                       bibArtBaseType;
+    typedef std::unique_ptr<bibArtBaseType>           &             bibArtType;
 
     extern bibArtType       bibArtFork;
 

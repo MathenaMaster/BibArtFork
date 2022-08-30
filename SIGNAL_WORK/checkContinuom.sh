@@ -8,5 +8,5 @@ while [ $presentleft -gt 0 ];
     presentleft=$(($presentleft - $min))
     if [ $presentleft -le 0 ]; then presentleft=0; fi
     echo "$presentleft babies of biba alive!"
-done
+    done
 echo "No more"

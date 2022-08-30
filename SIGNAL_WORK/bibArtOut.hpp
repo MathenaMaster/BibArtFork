@@ -12,7 +12,6 @@ class ArtOut : public std::ostream
     public:
         ArtOut(std::ostream &);
         std::ostream &      GetInos();
-        //std::ostream    &   operator<<(std::ostream &);
         std::ostream &      operator*();
 };
 
