@@ -20,7 +20,7 @@ if ! [[ $4 =~ $entry_regex ]]; then
 fi
 
 for i in $(seq 1 $3)
-    do ./$2 $4 > "$1/out_file_$i.out" 2> "$1/err_file_$i.err" &
+    do ./$2 $4 > "$1/mix_out_file_$i.out" 2> "$1/mix_err_file_$i.err" &
     if [ $i -eq 1 ]; then
         echo "$i test realized"
     else
