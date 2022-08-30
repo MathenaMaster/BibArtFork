@@ -13,7 +13,7 @@
 typedef unsigned int __LIMIT__;
 typedef unsigned int __SYSTEM__;
 
-template<typename T, typename S> // UNSIGNED HAS TO BE SPECIFIED BY USER. TEMPLATING DO NOT ALLOWS TO EXTENDED TYPENAMES TO 'UNSIGNED TYPENAME'
+template<typename T = __LIMIT__, typename S = __SYSTEM__> // UNSIGNED HAS TO BE SPECIFIED BY USER. TEMPLATING DO NOT ALLOWS TO EXTENDED TYPENAMES TO 'UNSIGNED TYPENAME'
 class                       ForkThread {
     private:
 
@@ -40,7 +40,7 @@ class                       ForkThread {
     void                    SwitchOffKillSwitch();
     bool                    GetKillSwitch();
 
-    static std::unique_ptr<ForkThread<__LIMIT__, __SYSTEM__>> &      CreateBibArt(T maxFork = 0, void (*action) (void *) = nullptr, void * base_data = nullptr);
+    //static std::unique_ptr<ForkThread<T, S>> &      CreateBibArt(T maxFork = 0, void (*action) (void *) = nullptr, void * base_data = nullptr);
 
 
     private:
@@ -88,8 +88,11 @@ class                       ForkThread {
     */
    
     typedef ForkThread<__LIMIT__, __SYSTEM__>                       bibArtBaseType;
-    typedef std::unique_ptr<bibArtBaseType>           &             bibArtType;
+    typedef std::unique_ptr<bibArtBaseType>                         bibArtType;
 
-    extern bibArtType       bibArtFork;
+    extern bibArtType    &   bibArtFork;
+
+    template<typename T = __LIMIT__, typename S = __SYSTEM__>
+    bibArtType &      CreateBibArt(T maxFork = 0, void (*action) (void *) = nullptr, void * base_data = nullptr);
 
 #endif /* !__FORKTHREAD__ */

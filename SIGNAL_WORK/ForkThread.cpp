@@ -11,7 +11,7 @@
 #include "bibArtOut.hpp"
 #include "ForkThread.hpp"
 
-bibArtType             bibArtFork = bibArtBaseType::CreateBibArt();
+bibArtType     &        bibArtFork = CreateBibArt();
 
 template<typename T, typename S>
 bool    ForkThread<T, S>::TestSystemAvailability()
@@ -202,7 +202,7 @@ void    ForkThread<T, S>::BasicTestForkAction(int time_data)
     }
 
 template<typename T, typename S>
-bibArtType     ForkThread<T, S>::CreateBibArt(T maxFork, void (*action) (void *), void * base_data)
+bibArtType  &             CreateBibArt(T maxFork, void (*action) (void *), void * base_data)
     {
         return (*(new std::unique_ptr<ForkThread<T, S>>(new ForkThread<T, S>(maxFork, -3, -3, action, base_data))));
     }
