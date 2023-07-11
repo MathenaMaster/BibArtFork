@@ -25,6 +25,7 @@ all:			$(NAME)
 
 clean:
 		rm -rf $(OBJ) $(OUTFILE) $(ERRFILE)
+		rm -rf $(TESTSOUTDIR)/*
 
 fclean:			clean
 		rm -rf $(NAME) $(COMPILOUT)
@@ -67,10 +68,17 @@ reset:
 		pkill -9 $(NAME)
 		pkill -9 $(NAME)
 
+throw_test_session:
+		ps | grep bibArt | awk '{print $0}' | xargs kill -9
+
+fake_throw_test_session:
+		ps | grep bash | grep -e "^[0-9]+"
+
+
 MegaMasterTestScript:
 		./MegaMasterTestScript.sh $(TESTSOUTDIR) $(NAME) 100 1000
 
 MegaMasterMixTestScript:
 		./MegaMasterTestScript_Mixcopy.sh $(TESTSOUTDIR) $(NAME) 10 1000
 
-.PHONY:			all clean fclean re ps ps_more ps_wc execute ForkTestLoop rollCheck progressCheck testFinalOut continuousForkCheck gdb reset MegaMasterTestScript MegaMasterMixTestScript
+.PHONY:			all clean fclean re ps ps_more ps_wc execute ForkTestLoop rollCheck progressCheck testFinalOut continuousForkCheck gdb reset fake_throw_test_session throw_test_session MegaMasterTestScript MegaMasterMixTestScript

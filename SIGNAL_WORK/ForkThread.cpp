@@ -13,6 +13,11 @@
 
 bibArtType     &        bibArtFork = CreateBibArt();
 
+void                    sigkillToSigint(int sigkill)
+{
+    kill(getpid(), SIGINT);
+}
+
 template<typename T, typename S>
 bool    ForkThread<T, S>::TestSystemAvailability()
     {
@@ -23,7 +28,7 @@ bool    ForkThread<T, S>::TestSystemAvailability()
             try {
                 activeNb = system("ps -aux --no-header | wc -l");
                 *bibOut << "Real system usage is: " << activeNb << std::endl;
-                *bibOut << "Actual employment is: " << actualUsage << " on automated maximum usage: " << classLimit << " or system limt: " << systemLimit << std::endl;
+                *bibOut << "Actual employment is: " << actualUsage << " on automated maximum usage: " << classLimit << " or system limit: " << systemLimit << std::endl;
             } catch (std::exception e) {
                 *bibErr << "Problem to get real system usage info! Error info is: " << e.what() << std::endl;
                 return (false);
@@ -34,7 +39,7 @@ bool    ForkThread<T, S>::TestSystemAvailability()
     }
 
 template<typename T, typename S>
-ForkThread<T, S>::ForkThread(T maxFork, T classLimit, S systemLimit, /*std::function<void(void*)> fork_action_entry*/ void (*fork_action_entry)(void *), void * base_data) :
+ForkThread<T, S>::ForkThread(T maxFork, /*std::function<void(void*)> fork_action_entry*/ void (*fork_action_entry)(void *), void * base_data, T classLimit, S systemLimit, bool setSigKill) :
     maxForkNb(maxFork), forkNb(0), classLimit(classLimit), systemLimit(systemLimit), killSwitch(false), forkAction(fork_action_entry),
     common_data(base_data), fork_catcher(std::thread(&ForkThread<T, S>::ThreadCatcher, this))
     {
@@ -43,6 +48,8 @@ ForkThread<T, S>::ForkThread(T maxFork, T classLimit, S systemLimit, /*std::func
             throw std::invalid_argument("System size inferior to class usage specfied size");
         } if ((T) maxFork == (T) -1)
             *bibErr << "You used an option (-1) that means: 'manage -automaticaly/during the runtime- the max number and the limitation of available processes in the limit of the system and the instance definition." << std::endl;
+        if (setSigKill)
+            signal(SIGKILL, sigkillToSigint);
         PrintMsg();
         *bibErr << "AN INSTANCE HAS BEEN CREATED" << std::endl;
     }
@@ -51,7 +58,6 @@ template<typename T, typename S>
 ForkThread<T, S>::~ForkThread()
     {
         SwitchOffKillSwitch();
-        //while (fork_catcher.joinable()) fork_catcher.join();
         fork_catcher.join();
     }
 
@@ -172,7 +178,7 @@ void    ForkThread<T, S>::CatchLoop()
         while ((actual_fork_nb = GetForkNb()) > 0)
         {
             catched_pid = wait(&return_status);
-            if (catched_pid > 0) { // | WIFEXITED(return_status) | WIFSIGNALED(return_status) | WCOREDUMP(return_status)) {
+            if (catched_pid > 0) {
                 SetForkNb(-1);
                 *bibOut << "The pid: " << catched_pid << " ended with status: " << return_status << std::endl;
                 *bibErr << "There's stil actual_fork_nb: " << actual_fork_nb << " and: " << GetForkNb() << " real (-1) forkNb left in processing" << std::endl;
@@ -189,7 +195,6 @@ void     ForkThread<T, S>::ThreadCatcher()
     {
         *bibOut << "Thread catcher running. kill_switch = " << GetKillSwitch() << std::endl;
         while (!GetKillSwitch()) CatchLoop();
-        //CatchLoop(); // maybe to retire if no security proof
         EndCatchLoop();
     }
 
@@ -204,7 +209,7 @@ void    ForkThread<T, S>::BasicTestForkAction(int time_data)
 template<typename T, typename S>
 bibArtType  &             CreateBibArt(T maxFork, void (*action) (void *), void * base_data)
     {
-        return (*(new std::unique_ptr<ForkThread<T, S>>(new ForkThread<T, S>(maxFork, -3, -3, action, base_data))));
+        return (*(new std::unique_ptr<ForkThread<T, S>>(new ForkThread<T, S>(maxFork, action, base_data))));
     }
 
 /*

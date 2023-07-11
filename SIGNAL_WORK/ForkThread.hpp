@@ -10,8 +10,8 @@
 #ifndef __FORKTHREAD__
 #define __FORKTHREAD__
 
-typedef unsigned int __LIMIT__;
-typedef unsigned int __SYSTEM__;
+typedef size_t __LIMIT__;
+typedef size_t __SYSTEM__;
 
 template<typename T = __LIMIT__, typename S = __SYSTEM__> // UNSIGNED HAS TO BE SPECIFIED BY USER. TEMPLATING DO NOT ALLOWS TO EXTENDED TYPENAMES TO 'UNSIGNED TYPENAME'
 class                       ForkThread {
@@ -31,7 +31,7 @@ class                       ForkThread {
     
     public:
 
-                            ForkThread(T maxFork = 0, T classLimit = -3, S systemLimit = -3, /*std::function<void(void*)> fork_action_entry = nullptr*/ void (*fork_action_entry)(void *) = nullptr, void * base_data = nullptr); // A CPPIFIER
+                            ForkThread(T maxFork = 0, /*std::function<void(void*)> fork_action_entry = nullptr*/ void (*fork_action_entry)(void *) = nullptr, void * base_data = nullptr, T classLimit = -3, S systemLimit = -3, bool setSigKill = true);
                             ~ForkThread();
     T                       GetForkNb();
     void                    Fork(void *);
@@ -39,9 +39,6 @@ class                       ForkThread {
     void                    SetForkAction(void (*action) (void *) = nullptr);
     void                    SwitchOffKillSwitch();
     bool                    GetKillSwitch();
-
-    //static std::unique_ptr<ForkThread<T, S>> &      CreateBibArt(T maxFork = 0, void (*action) (void *) = nullptr, void * base_data = nullptr);
-
 
     private:
 
