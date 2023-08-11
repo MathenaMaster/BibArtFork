@@ -7,9 +7,9 @@ childEnd='^Child ended after: [0-9]\+ seconds.$'
 theres='^There is actually: [0-9]\+ left in processing$'
 
 if [ ! $# ]; then
-    cat out.txt | tail -n+4 | grep -x -G -v -e "$theNo" -e "$childcrtd" -e "$thePid" -e "$childEnd" -e "$theres"
+    cat out.txt | tail -n+5 | grep -a -x -G -v -e "$theNo" -e "$childcrtd" -e "$thePid" -e "$childEnd" -e "$theres"
 else
     for outfile in $@; do
-        cat $outfile | tail -n+4 | grep -G -v -e "$theNo" -e "$childcrtd" -e "$thePid" -e "$childEnd" -e "$theres"
+        cat $outfile | tail -n+5 | grep -a -G -v -e "$theNo" -e "$childcrtd" -e "$thePid" -e "$childEnd" -e "$theres"
     done
 fi

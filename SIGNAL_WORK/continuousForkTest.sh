@@ -9,4 +9,4 @@ while true
     echo "new succeded test: $OkNb realized actually"
     done
 
-echo "$OkNb test finallly succeded at normal or forced ending."
+echo "$OkNb test finallly succeded at forced ending."

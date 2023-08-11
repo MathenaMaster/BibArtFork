@@ -6,9 +6,11 @@ SRC			+=		osthings.cpp	\
 
 CC			=		g++
 
-OBJ			+=		$(SRC:.cpp=.o)
+CXXFLAGS	+=		--std=c++20 -fgnu-tm # -freport-bug
 
-CXXFLAGS	+=		--std=c++20 -fgnu-tm -g
+#CFLAGS		+=		--std=c++20 -fgnu-tm
+
+OBJ			+=		$(SRC:.cpp=.o)
 
 LDLIBS		+=		-lstdc++
 
@@ -39,7 +41,7 @@ ps_more:
 		ps -aux | more
 
 ps_wc:
-		ps | wc -l
+		ps -aux | grep $(NAME) | wc -l
 
 execute:
 		echo "You can execute 'make rollCheck' or 'make progressCheck' to follow the test from other terminals"
@@ -76,7 +78,7 @@ fake_throw_test_session:
 
 
 MegaMasterTestScript:
-		./MegaMasterTestScript.sh $(TESTSOUTDIR) $(NAME) 100 1000
+		./MegaMasterTestScript.sh $(TESTSOUTDIR) $(NAME) 100 1000 $(OUTFILE) $(ERRFILE)
 
 MegaMasterMixTestScript:
 		./MegaMasterTestScript_Mixcopy.sh $(TESTSOUTDIR) $(NAME) 10 1000

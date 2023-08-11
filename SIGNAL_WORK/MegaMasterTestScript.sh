@@ -1,11 +1,11 @@
 #!/bin/bash
 
 entry_regex='^[0-9]+$'
-if [ $# -ne 4 ]; then
+if [ $# -ne 6 ]; then
     echo "Please specify the out dir name as first argument"
     echo "A second for the process binary name"
-    echo "The third is the number of $2 processes loop to launch"
-    echo "the fourth is the number of fork to launch in these"
+    echo "The third is the number of processes loop to launch"
+    echo "the fourth is the number of fork to launch in these iterations"
     exit
 fi
 
@@ -20,7 +20,8 @@ if ! [[ $4 =~ $entry_regex ]]; then
 fi
 
 for i in $(seq 1 $3)
-    do ./$2 $4 > "$1/out_file_$i.out" 2> "$1/err_file_$i.err"
+    do #./$2 $4 > "$1/out_file_$i.out" 2> "$1/err_file_$i.err"
+    ./$2 $4 > $5 2> $6
     if [ $i -eq 1 ]; then
         echo "$i test realized"
     else

@@ -1,5 +1,7 @@
 #include <ostream>
-#include <iostream>
+//#include <iostream>
+#include <string>
+#include <semaphore>
 #include "osthings.hpp"
 
 #ifndef __ARTOUT__
@@ -7,15 +9,17 @@
 
 class ArtOut : public std::ostream
 {
-    protected:
-        std::ostream        & inos;
+    private:
+        std::ostream                        &   inos;
+        std::counting_semaphore<1>              stream_sem;
     public:
-        ArtOut(std::ostream &);
+        ArtOut(std::ostream & inos);
         std::ostream &      GetInos();
         std::ostream &      operator*();
-};
+        std::string         endl();
+        std::string         flush();
 
-std::ostream & operator<<(std::ostream &, ArtOut &);
+};
 
 extern ArtOut bibOut;
 extern ArtOut bibErr;

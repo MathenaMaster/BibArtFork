@@ -22,8 +22,8 @@ class                       ForkThread {
     T                       classLimit;
     S                       systemLimit;
     bool                    killSwitch;
-    //std::function<void(void*)>  forkAction;
-    void                    (*forkAction)(void *);
+    std::function<void(void *)>  forkAction;
+    //void                    (*forkAction)(void *);
     void *                  common_data;
     std::thread             fork_catcher;
     std::mutex              fork_nb_mutex;
@@ -31,12 +31,12 @@ class                       ForkThread {
     
     public:
 
-                            ForkThread(T maxFork = 0, /*std::function<void(void*)> fork_action_entry = nullptr*/ void (*fork_action_entry)(void *) = nullptr, void * base_data = nullptr, T classLimit = -3, S systemLimit = -3, bool setSigKill = true);
+                            ForkThread(T maxFork = 0, void (*fork_action_entry)(void *) = nullptr, void * base_data = nullptr, T classLimit = -3, S systemLimit = -3, bool setSigKill = true);
                             ~ForkThread();
     T                       GetForkNb();
     void                    Fork(void *);
     void                    Fork();
-    void                    SetForkAction(void (*action) (void *) = nullptr);
+    //void                    SetForkAction(void (*action) (void const *) = nullptr);
     void                    SwitchOffKillSwitch();
     bool                    GetKillSwitch();
 
@@ -85,11 +85,11 @@ class                       ForkThread {
     */
    
     typedef ForkThread<__LIMIT__, __SYSTEM__>                       bibArtBaseType;
-    typedef std::unique_ptr<bibArtBaseType>                         bibArtType;
+    typedef std::unique_ptr<bibArtBaseType>  &                      bibArtType;
 
     extern bibArtType    &   bibArtFork;
 
     template<typename T = __LIMIT__, typename S = __SYSTEM__>
-    bibArtType &      CreateBibArt(T maxFork = 0, void (*action) (void *) = nullptr, void * base_data = nullptr);
+    bibArtType   &    CreateBibArt(T maxFork = 0, void (*action) (void *) = nullptr, void * base_data = nullptr);
 
 #endif /* !__FORKTHREAD__ */

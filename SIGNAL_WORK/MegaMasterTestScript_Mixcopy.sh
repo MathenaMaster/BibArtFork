@@ -21,6 +21,7 @@ fi
 
 for i in $(seq 1 $3)
     do ./$2 $4 > "$1/mix_out_file_$i.out" 2> "$1/mix_err_file_$i.err" &
+    #./$2 $4 > $5 2> $6 &
     if [ $i -eq 1 ]; then
         echo "$i test realized"
     else

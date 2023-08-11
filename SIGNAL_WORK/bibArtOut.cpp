@@ -1,18 +1,20 @@
+#include <iostream>
 #include <ostream>
 #include <thread>
+#include <string>
+#include <semaphore>
 #include "osthings.hpp"
 #include "bibArtOut.hpp"
 
-ArtOut::ArtOut(std::ostream & copy): inos(copy)
+
+ArtOut::ArtOut(std::ostream & copy): inos(copy), stream_sem(std::counting_semaphore<1>(1))
     {
     }
 
-[[optimize_for_synchronized]]
 std::ostream &            ArtOut::operator*()
     {
-        synchronized {
-            return (inos);
-        }
+        stream_sem.acquire();
+        return (inos);
     }
 
 std::ostream &         ArtOut::GetInos()
@@ -20,9 +22,18 @@ std::ostream &         ArtOut::GetInos()
         return (inos);
     }
 
-std::ostream &      operator<<(std::ostream & toOut, ArtOut & that) // to static
+std::string                 ArtOut::endl()
     {
-        return (toOut << that.GetInos().rdbuf());    
+        inos << std::endl;
+        stream_sem.release();
+        return ("");
+    }
+
+std::string                 ArtOut::flush()
+    {
+        inos << std::flush;
+        stream_sem.release();
+        return ("");
     }
 
 ArtOut bibOut = ArtOut(std::cout);
