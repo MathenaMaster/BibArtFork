@@ -22,7 +22,7 @@ int                     main(int argc, char **argv)
         std::size_t     junk_var;
 
         //Troll_func<10>("Whats that 10: ");
-        (*bibOut) << "You can specify a number as first argument of this program to set the number of fork to launch during the test. (not mandatory and set to: " << max_fork << bibOut.endl();
+        (*bibOut) << "You can specify a number as first argument of this program to set the number of fork to launch during the test. (not mandatory and set to: " << max_fork << ")" << bibOut.endl();
         try {
             if (argc == 2) max_fork = std::stoi(std::string(argv[1]), &junk_var);
             if (max_fork <= 0) throw ("The number of fork to do must not be null or negative!");
