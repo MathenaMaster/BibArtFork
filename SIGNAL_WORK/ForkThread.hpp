@@ -10,6 +10,8 @@
 #ifndef __FORKTHREAD__
 #define __FORKTHREAD__
 
+//typedef void (*faction)(const void *);
+
 typedef size_t __LIMIT__;
 typedef size_t __SYSTEM__;
 
@@ -27,6 +29,7 @@ class                       ForkThread {
     void *                  common_data;
     std::thread             fork_catcher;
     std::mutex              fork_nb_mutex;
+    std::mutex              fork_action_mutex;
     std::mutex              kill_switch_mutex;
     
     public:
@@ -36,7 +39,8 @@ class                       ForkThread {
     T                       GetForkNb();
     void                    Fork(void *);
     void                    Fork();
-    //void                    SetForkAction(void (*action) (void const *) = nullptr);
+    void                    SetForkAction(void (*action) (void const *) = nullptr);
+    std::function<void(void *)>                 GetForkAction();
     void                    SwitchOffKillSwitch();
     bool                    GetKillSwitch();
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 entry_regex='^[0-9]+$'
-if [ $# -ne 4 ]; then
+if [[ $# -ne 4 ]]; then
     echo "Please specify the out dir name as first argument"
     echo "A second for the process binary name"
     echo "The third is the number of $2 processes loop to launch"
@@ -19,18 +19,51 @@ if ! [[ $4 =~ $entry_regex ]]; then
     exit
 fi
 
-for i in $(seq 1 $3)
-    do ./$2 $4 > "$1/mix_out_file_$i.out" 2> "$1/mix_err_file_$i.err" &
-    #./$2 $4 > $5 2> $6 &
-    if [ $i -eq 1 ]; then
-        echo "$i test realized"
-    else
-        echo "$i tests realized"
-    fi
-    done
-echo "$3 Multiple test charge launched with each: $4 fork launched"
+echo "Launching $3 tests with each: $4 forks"
 
-while [ $(ps | grep bibArt | wc -l) -gt 0 ]
-    do sleep 1
+for i in $(seq 0 $(($3 - 1)))
+    do
+    echo "Launching test number $i"
+    ($(./$2 $4 > "$1/mix_out_file_$i.out" 2> "$1/mix_err_file_$i.err") && echo "Test number $i OK") &
+    #if [ $i -eq 1 ]
+    #then
+        #echo "$i test launched"
+    #else
+        #echo "$i tests launched"
+    #fi
+    #&& echo "Test number $i OK") &
+    #./$2 $4 > $5 2> $6 &
     done
+
+echo "Awaiting all bibArts ending"
+
+
+#if [ $i -eq 1 ]
+    #then
+        #echo "$i test launched"
+    #else
+        #echo "$i tests launched"
+    #fi
+
+#while [ $(ps | grep bibArt | wc -l) -gt 3 ]
+    #do sleep 1
+    #done
+#ps
+
+
+save=0
+left=$(ps | grep bibArt | wc -l)
+while [[ $left -gt 1 ]]
+    do
+        save=$left
+        left=$(ps | grep bibArt | wc -l)
+        if [[ $save -eq $left && $save -le 3 ]]
+        then
+            echo "Attention script seems to not end because of $left bibArts"
+        fi
+        sleep 1
+    done
+
+echo "Process endend"
+
 ps

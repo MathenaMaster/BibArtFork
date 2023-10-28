@@ -6,7 +6,7 @@ SRC			+=		osthings.cpp	\
 
 CC			=		g++
 
-CXXFLAGS	+=		--std=c++20 -fgnu-tm # -freport-bug
+CXXFLAGS	+=		--std=c++20 #-fgnu-tm # -freport-bug
 
 #CFLAGS		+=		--std=c++20 -fgnu-tm
 

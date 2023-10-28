@@ -96,6 +96,27 @@ void    ForkThread<T, S>::SetForkAction(void (*action) (void const *))
         forkAction = *(new std::function<void(const void *)>(action));
     }*/
 
+template<typename T, typename S>
+void    ForkThread<T, S>::SetForkAction(void (*action) (void const *))
+    {
+        //synchronized { forkAction = std::function<void(const void *)>(action); }
+        //forkAction = *(new std::function<void(const void *)>(action));
+        fork_action_mutex.lock();
+        forkAction = action;
+        fork_action_mutex.unlock();
+    }
+
+template<typename T, typename S>
+std::function<void(void*)>  ForkThread<T, S>::GetForkAction()
+    {
+        //void    (*action)(const void *);
+        std::function<void(void*)> action;
+        fork_action_mutex.lock();
+        action = forkAction;
+        fork_action_mutex.unlock();
+        return (action);
+    }
+
 
 template<typename T, typename S>
 void    ForkThread<T, S>::SwitchOffKillSwitch()
@@ -121,9 +142,12 @@ void    ForkThread<T, S>::Fork(void * data)
         int         random_time = (std::rand() % 10) + 1;
 
         if (TestSystemAvailability()) {
+            //void    (*action)(const void *) = GetForkAction();
+            std::function<void(void *)> action = GetForkAction();
             pid = fork();
             if (!pid) {
-                if (forkAction) forkAction(data);
+                //if (forkAction) forkAction(data);
+                if (action) action(data);
                 else BasicTestForkAction(random_time);
                 exit(0); // Be sure you exit(?) in the child code. It's just an overload security
             } else if (pid > 0) {
@@ -140,9 +164,12 @@ void    ForkThread<T, S>::Fork()
         int         random_time = (std::rand() % 10) + 1;
 
         if (TestSystemAvailability()) {
+            //void    (*action)(const void *) = GetForkAction();
+            std::function<void(void *)> action = GetForkAction();
             pid = fork();
             if (!pid) {
-                if (forkAction) forkAction(common_data);
+                //if (forkAction) forkAction(common_data);
+                if (action) action(common_data);
                 else BasicTestForkAction(random_time);
                 exit(0);
             } else if (pid > 0) {
