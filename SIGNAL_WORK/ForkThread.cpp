@@ -244,7 +244,7 @@ bibArtType    &           CreateBibArt(T maxFork, /* std::function<void(const vo
         return *(new std::unique_ptr<ForkThread<T, S>>(new ForkThread<T, S>(maxFork, action, base_data)));
     }
 
-/*
+
 template class ForkThread<unsigned char, unsigned char>;
 template class ForkThread<unsigned char, unsigned short>;
 template class ForkThread<unsigned char, unsigned int>;
@@ -255,16 +255,16 @@ template class ForkThread<unsigned short, unsigned short>;
 template class ForkThread<unsigned short, unsigned int>;
 template class ForkThread<unsigned short, unsigned long>;
 template class ForkThread<unsigned short, unsigned long long>;
-*/
+
 template class ForkThread<__LIMIT__, __SYSTEM__>;
-/*
+
 template class ForkThread<unsigned int, unsigned long>;
 template class ForkThread<unsigned int, unsigned long long>;
 template class ForkThread<unsigned long, unsigned long>;
 template class ForkThread<unsigned long, unsigned long long>;
 
 template class ForkThread<unsigned long long, unsigned long long>;
-*/
+
 
 
 
